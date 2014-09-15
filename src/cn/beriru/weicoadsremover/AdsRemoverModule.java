@@ -8,6 +8,7 @@ import android.os.Bundle;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.XposedHelpers.ClassNotFoundError;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 
@@ -27,6 +28,10 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 		public static final String HOOK_FUNCNAME = "h";
 		public static final String FUNCNAME_C = "c";
 		public static final String FUNCNAME_ONCREATE = "onCreate";
+	}
+	
+	public static class MEIZU {
+		public static final String HOOK_CLASS_NAME = "";
 		
 	}
 	
@@ -81,7 +86,7 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 				}
 			});
 			
-			/**
+			/** hooking source
 			 * if(Math.abs(v0 - this.z) > 1000 && !this.D) {
 			 */
 			log("hookingmethodsc");
@@ -97,10 +102,9 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 				}
 			});
 			
-			/**
-			 *   protected void onCreate(Bundle arg11) {
+			/** hooking source
+			 *  protected void onCreate(Bundle arg11) {
 			 */
-			
 			log("hookingOnCreate");
 			XposedHelpers.findAndHookMethod(BUKA.HOOK_CLASS_NAME, lp.classLoader, BUKA.FUNCNAME_ONCREATE, Bundle.class, new XC_MethodHook() {
 				@Override
@@ -113,8 +117,22 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 					log("doneOnCreate");
 				}
 			});
-			
 		}
+		
+		/**
+		 * meizu license result check hooking
+		 */
+		/*
+		try{
+			Class<?> LisceneCheckResult = XposedHelpers.findClass(MEIZU.HOOK_CLASS_NAME, lp.classLoader);
+			XposedHelpers.findAndHookMethod(LisceneCheckResult, MEIZU.HOOK_FUNCNAME_CHECK, );
+			XposedHelpers.findAndHookMethod(LisceneCheckResult, MEIZU.HOOK_, parameterTypesAndCallback)
+			
+			
+		}catch(ClassNotFoundError e){
+			log("hookmeizuapi4pkg:" + lp.packageName + " failed,no class found");
+		}
+		*/
 	}
 	
 	

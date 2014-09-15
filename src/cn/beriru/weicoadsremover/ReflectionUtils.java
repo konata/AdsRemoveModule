@@ -54,10 +54,9 @@ public class ReflectionUtils {
 			}
 			
 			String setField = tokens.get(tokens.size() - 1);
-			
 			String[] prefixes = new String[]{};
 			if(tokens.size() > 1){
-				prefixes = tokens.subList(0, tokens.size() - 2).toArray(new String[tokens.size() - 1]);
+				prefixes = tokens.subList(0, tokens.size() - 1).toArray(new String[0]);
 			}
 			
 			Object o = getObjectFields(target,prefixes);
