@@ -1,6 +1,8 @@
 package cn.beriru.weicoadsremover;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import android.util.Log;
 import de.robv.android.xposed.XposedBridge;
@@ -9,9 +11,21 @@ import de.robv.android.xposed.XposedHelpers;
 public class ReflectionUtils {
 	public static final String TAG = AdsRemoverModule.class.getCanonicalName();
 	
+	/**
+	 * support dot and recursive notation
+	 * @param target
+	 * @param fields
+	 * @return
+	 * @throws Throwable
+	 */
 	public static Object getObjectFields(Object target,String... fields) throws Throwable{
 		try{
-			for(String s : fields){
+			List<String> compoundFields = new ArrayList<String>();
+			for(String f : fields){
+				compoundFields.addAll(Arrays.asList(f.split("\\.")));
+			}
+			
+			for(String s : compoundFields){
 				target = XposedHelpers.getObjectField(target, s);
 			}
 			return target;
@@ -21,17 +35,34 @@ public class ReflectionUtils {
 		}
 	}
 	
+	/**
+	 * add support dot and recursive notation
+	 * @param target
+	 * @param newValue
+	 * @param fields
+	 * @throws Throwable
+	 */
 	public static void setObjectFields(Object target,Object newValue,String... fields) throws Throwable{
 		try{
-					
-			Object[] objs = Arrays.asList(fields).subList(0, fields.length - 1).toArray();
-			String[] prefixes = new String[objs.length];
-			for(int i = 0; i < objs.length; i++){
-				prefixes[i] = objs[i].toString();
+			if(fields.length < 1){
+				throw new RuntimeException("field should not be null");
 			}
-			String field = fields[fields.length - 1];
+			
+			List<String> tokens = new ArrayList<String>();
+			for(String tokenItem : fields){
+				tokens.addAll(Arrays.asList(tokenItem.split("\\.")));
+			}
+			
+			String setField = tokens.get(tokens.size() - 1);
+			
+			String[] prefixes = new String[]{};
+			if(tokens.size() > 1){
+				prefixes = tokens.subList(0, tokens.size() - 2).toArray(new String[tokens.size() - 1]);
+			}
+			
 			Object o = getObjectFields(target,prefixes);
-			XposedHelpers.setObjectField(o, field, newValue);
+			XposedHelpers.setObjectField(o, setField, newValue);
+			
 		}catch(Throwable e){
 			log(e);
 			throw e;
@@ -39,10 +70,10 @@ public class ReflectionUtils {
 	}
 	
 	public static void log(String s){
-		XposedBridge.log(TAG + s);
+		XposedBridge.log(TAG + " : " + s);
 	}
 	
 	public static void log(Throwable e){
-		XposedBridge.log(TAG + Log.getStackTraceString(e));
+		XposedBridge.log(TAG + " : " + Log.getStackTraceString(e));
 	}
 }

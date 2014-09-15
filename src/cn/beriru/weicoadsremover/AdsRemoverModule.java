@@ -1,12 +1,14 @@
 package cn.beriru.weicoadsremover;
 
-import java.sql.Ref;
+import static cn.beriru.weicoadsremover.ReflectionUtils.log;
+
 import java.util.ArrayList;
+
+import android.os.Bundle;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
-import static cn.beriru.weicoadsremover.ReflectionUtils.log;
 
 
 public class AdsRemoverModule implements IXposedHookLoadPackage {
@@ -23,6 +25,8 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 		public static final String PACKAGE_NAME = "cn.ibuka.manga.ui";
 		public static final String HOOK_CLASS_NAME = "cn.ibuka.manga.ui.ActivityShake2";
 		public static final String HOOK_FUNCNAME = "h";
+		public static final String FUNCNAME_C = "c";
+		public static final String FUNCNAME_ONCREATE = "onCreate";
 		
 	}
 	
@@ -64,6 +68,7 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 					super.beforeHookedMethod(param);
 				}
 			});
+			
 		}else if(lp.packageName.equals(BUKA.PACKAGE_NAME)){
 			log("hookingbuka");
 			XposedHelpers.findAndHookMethod(BUKA.HOOK_CLASS_NAME, lp.classLoader, BUKA.HOOK_FUNCNAME, new XC_MethodHook(){
@@ -75,6 +80,40 @@ public class AdsRemoverModule implements IXposedHookLoadPackage {
 					log("done");
 				}
 			});
+			
+			/**
+			 * if(Math.abs(v0 - this.z) > 1000 && !this.D) {
+			 */
+			log("hookingmethodsc");
+			XposedHelpers.findAndHookMethod(BUKA.HOOK_CLASS_NAME, lp.classLoader, BUKA.FUNCNAME_C, new XC_MethodHook() {
+				@Override
+				protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+					log("hookingc");
+					XposedHelpers.setIntField(param.thisObject, "z", -1001);
+					XposedHelpers.setBooleanField(param.thisObject, "D", false);
+					super.beforeHookedMethod(param);
+					log(new RuntimeException("tianyeshigedashabi"));
+					log("donehooingc");
+				}
+			});
+			
+			/**
+			 *   protected void onCreate(Bundle arg11) {
+			 */
+			
+			log("hookingOnCreate");
+			XposedHelpers.findAndHookMethod(BUKA.HOOK_CLASS_NAME, lp.classLoader, BUKA.FUNCNAME_ONCREATE, Bundle.class, new XC_MethodHook() {
+				@Override
+				protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+					log("hookingOnCreateBegin");
+					super.afterHookedMethod(param);
+					Object o = ReflectionUtils.getObjectFields(param.thisObject, "n");
+					XposedHelpers.callMethod(o, "removeAllViews");
+					XposedHelpers.callMethod(param.thisObject, BUKA.FUNCNAME_C);
+					log("doneOnCreate");
+				}
+			});
+			
 		}
 	}
 	
